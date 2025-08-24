@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Expense Tracker</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css?family=Inter:400,600&display=swap');
+body {
+  font-family: 'Inter', Arial, sans-serif;
+  background: linear-gradient(135deg, #e3f0ff 0%, #f8f9fa 100%);
+  color: #212529;
+}
+#sidebar {
+  background: #17a2b8;
+  color: #fff;
+  border-radius: 16px 0 0 16px;
+  box-shadow: 2px 0 16px #cfe2ff;
+  min-height: 100vh;
+}
+#sidebar button {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 0;
+  margin-bottom: 16px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#sidebar button:hover {
+  background: #0056b3;
+}
+#mainContent {
+  background: linear-gradient(120deg, #eaf6fb 0%, #e3f0ff 100%);
+  border-radius: 0 16px 16px 0;
+  box-shadow: 0 4px 24px #cfe2ff;
+  margin: 32px 0;
+  padding: 40px;
+  border: 2px solid #17a2b8;
+}
+form, #summary, .card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px #cfe2ff;
+  padding: 28px;
+  margin-bottom: 32px;
+  border: 2px solid #e3f0ff;
+}
+input, select {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 10px;
+  margin-bottom: 16px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+}
+button[type="submit"] {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-size: 1.1em;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: background 0.2s;
+}
+button[type="submit"]:hover {
+  background: #218838;
+}
+table {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px #cfe2ff;
+  border: 2px solid #007bff;
+}
+th, td {
+  border: 1px solid #dee2e6;
+  padding: 14px;
+  text-align: left;
+}
+tr:nth-child(even) {
+  background: #eaf6fb;
+}
+tr:hover td {
+  background: #e3f0ff;
+}
+.card {
+  display: inline-block;
+  min-width: 180px;
+  margin-right: 24px;
+  vertical-align: top;
+  border: 2px solid #e3f0ff;
+  background: #eaf6fb;
+}
+#feedback {
+  color: #28a745;
+  font-weight: bold;
+  margin-bottom: 12px;
+  transition: opacity 0.5s;
+}
+button[aria-label="Delete transaction"] {
+  background: #dc3545;
+  color: #fff;
+  margin-left: 10px;
+}
+button[aria-label="Delete transaction"]:hover {
+  background: #c82333;
+}
+button[aria-label="Edit transaction"] {
+  background: #ffc107;
+  color: #212529;
+  margin-right: 10px;
+}
+button[aria-label="Edit transaction"]:hover {
+  background: #e0a800;
+}
+/* Icon styles (Font Awesome) */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+button i {
+  margin-right: 6px;
+}
+/* Responsive */
+@media (max-width: 900px) {
+  #mainContent { padding: 16px; }
+  form, #summary, .card { padding: 16px; }
+}
+@media (max-width: 700px) {
+  #sidebar { min-width: 80px; padding: 8px; }
+  #mainContent { margin: 0; border-radius: 0; }
+}
+/* Dark mode overrides */
+body.dark-mode {
+  background: linear-gradient(135deg, #3a3f45 0%, #23272b 100%);
+  color: #e4e6eb;
+}
+body.dark-mode #mainContent, body.dark-mode form, body.dark-mode #summary, body.dark-mode .card {
+  background: #3a3f45 !important;
+  color: #e4e6eb !important;
+  border-color: #666 !important;
+}
+body.dark-mode th, body.dark-mode td {
+  border-color: #666 !important;
+  color: #e4e6eb !important;
+}
+body.dark-mode #sidebar {
+  background: #32373d !important;
+  color: #e4e6eb !important;
+}
+body.dark-mode input, body.dark-mode select, body.dark-mode textarea {
+  background: #3a3f45 !important;
+  color: #e4e6eb !important;
+  border-color: #666 !important;
+}
+body.dark-mode table {
+  background: #3a3f45 !important;
+  color: #e4e6eb !important;
+}
+body.dark-mode tr:nth-child(even) {
+  background: #32373d !important;
+}
+body.dark-mode tr:hover td {
+  background: #44484e !important;
+}
+  </style>
+</head>
+<body>
+  <h1>Personal Expense Tracker</h1>
+
+  <div style="display: flex;">
+    <nav id="sidebar" style="width: 160px; min-width: 120px; background: #f0f4fa; padding: 20px 10px 20px 10px; border-radius: 8px 0 0 8px; box-shadow: 2px 0 8px #eee;">
+      <button id="filterBtn" style="width: 100%; margin-bottom: 10px;">Filter</button>
+      <button id="exportBtn" style="width: 100%; margin-bottom: 10px;">Export CSV</button>
+      <button id="chartBtn" style="width: 100%; margin-bottom: 10px;">Charts</button>
+      <button id="budgetBtn" style="width: 100%; margin-bottom: 10px;">Budget</button>
+      <button id="summaryBtn" style="width: 100%; margin-bottom: 10px;">Summary</button>
+      <button id="darkModeBtn" style="width: 100%;">Dark Mode</button>
+    </nav>
+    <div id="mainContent" style="flex: 1; padding: 20px;">
+      <!-- Main content will be rendered here -->
+      <div id="mainView"></div>
+
+      <form onsubmit="addTransaction(); return false;" aria-label="Add a new transaction">
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+
+        <label for="desc">Description:</label>
+        <input type="text" id="desc" name="desc">
+
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount">
+
+        <label for="type">Type:</label>
+        <select id="type" name="type">
+          <option value="Income">Income</option>
+          <option value="Expense">Expense</option>
+        </select>
+
+        <label for="category">Category:</label>
+        <select id="category" name="category">
+          <option value="Food">Food</option>
+          <option value="Transport">Transport</option>
+          <option value="Bills">Bills</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Salary">Salary</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <label for="recurring">Recurring:</label>
+        <input type="checkbox" id="recurring" name="recurring">
+
+        <button type="submit" aria-label="Add transaction">Add</button>
+      </form>
+
+      <h2>Transactions</h2>
+      <table id="transactions">
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Type</th>
+          <th>Amount</th>
+          <th>Category</th>
+          <th>Action</th>
+        </tr>
+      </table>
+
+      <h3>Balance: $<span id="balance">0</span></h3>
+      <div id="feedback" style="color: green; font-weight: bold; margin-bottom: 10px;" aria-live="polite"></div>
+      <div id="summary">
+        <p>Total Income: $<span id="totalIncome">0</span></p>
+        <p>Total Expenses: $<span id="totalExpense">0</span></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let transactions = [];
+    let balance = 0;
+    let isEditing = false;
+    let editingRow = null;
+    let monthlyBudgets = {};
+
+    // Load from localStorage on page load
+    window.onload = function() {
+      const storedTransactions = localStorage.getItem('transactions');
+      const storedBalance = localStorage.getItem('balance');
+      const storedBudgets = localStorage.getItem('monthlyBudgets');
+      if (storedTransactions) {
+        transactions = JSON.parse(storedTransactions);
+        renderTransactions();
+        updateSummary();
+      }
+      if (storedBalance) {
+        balance = parseFloat(storedBalance);
+        document.getElementById('balance').innerText = balance.toFixed(2);
+      }
+      if (storedBudgets) {
+        monthlyBudgets = JSON.parse(storedBudgets);
+      }
+    };
+
+    // Utility: Escape HTML to prevent XSS
+function escapeHTML(str) {
+  return String(str).replace(/[&<>'"`=]/g, function(s) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;','`':'&#96;','=':'&#61;'}[s]);
+  });
+}
+
+    function addTransaction() {
+  const date = document.getElementById('date').value;
+  const desc = document.getElementById('desc').value;
+  const amount = parseFloat(document.getElementById('amount').value);
+  const type = document.getElementById('type').value;
+  const category = document.getElementById('category').value;
+  const recurring = document.getElementById('recurring').checked;
+
+  if (!date || !desc || isNaN(amount) || amount <= 0) {
+    alert('Please fill all fields correctly! Amount must be positive.');
+    return;
+  }
+
+  const transaction = { date, desc, type, amount, category, recurring };
+
+  if (typeof window.editIndex === 'number') {
+    // Recalculate balance: remove old transaction effect
+    const old = transactions[window.editIndex];
+    if (old) {
+      if (old.type === 'Income') balance -= old.amount;
+      else balance += old.amount;
+    }
+    transactions[window.editIndex] = transaction;
+    window.editIndex = undefined;
+    isEditing = false;
+    document.querySelector('button[type="submit"]').innerText = 'Add';
+    // Show feedback message
+    const feedback = document.getElementById('feedback');
+    feedback.innerText = 'Transaction updated!';
+    feedback.style.opacity = 1;
+    setTimeout(() => {
+      feedback.style.opacity = 0;
+      setTimeout(() => { feedback.innerText = ''; feedback.style.opacity = 1; }, 500);
+    }, 2000);
+  } else {
+    transactions.push(transaction);
+    // Show feedback message
+    const feedback = document.getElementById('feedback');
+    feedback.innerText = 'Transaction added!';
+    feedback.style.opacity = 1;
+    setTimeout(() => {
+      feedback.style.opacity = 0;
+      setTimeout(() => { feedback.innerText = ''; feedback.style.opacity = 1; }, 500);
+    }, 2000);
+  }
+
+  // Apply new transaction effect to balance
+  if (type === 'Income') balance += amount;
+  else balance -= amount;
+
+  document.getElementById('balance').innerText = balance.toFixed(2);
+
+  // Save to localStorage
+  localStorage.setItem('transactions', JSON.stringify(transactions));
+  localStorage.setItem('balance', balance.toFixed(2));
+
+  // Re-render table
+  renderTransactions();
+  updateSummary();
+
+  // Clear inputs
+  document.getElementById('date').value = '';
+  document.getElementById('desc').value = '';
+  document.getElementById('amount').value = '';
+  document.getElementById('category').value = 'Food';
+
+  checkBudgetForTransaction(transaction);
+}
+
+    function renderTransactions() {
+      const table = document.getElementById('transactions');
+      // Remove all rows except the header
+      while (table.rows.length > 1) {
+        table.deleteRow(1);
+      }
+      transactions.forEach((t, idx) => {
+        const row = table.insertRow();
+        if (editingRow === idx) {
+          // Inline edit mode
+          row.insertCell(0).innerHTML = `<input type='date' id='edit-date' value='${t.date}'>`;
+          row.insertCell(1).innerHTML = `<input type='text' id='edit-desc' value='${t.desc}'>`;
+          row.insertCell(2).innerHTML = `<select id='edit-type'><option value='Income'${t.type==='Income'?' selected':''}>Income</option><option value='Expense'${t.type==='Expense'?' selected':''}>Expense</option></select>`;
+          row.insertCell(3).innerHTML = `<input type='number' id='edit-amount' value='${t.amount}'>`;
+          row.insertCell(4).innerHTML = `<select id='edit-category'>
+        <option value='Food'${t.category==='Food'?' selected':''}>Food</option>
+        <option value='Transport'${t.category==='Transport'?' selected':''}>Transport</option>
+        <option value='Bills'${t.category==='Bills'?' selected':''}>Bills</option>
+        <option value='Shopping'${t.category==='Shopping'?' selected':''}>Shopping</option>
+        <option value='Salary'${t.category==='Salary'?' selected':''}>Salary</option>
+        <option value='Other'${t.category==='Other'?' selected':''}>Other</option>
+      </select>`;
+          const actionCell = row.insertCell(5);
+          const updateBtn = document.createElement('button');
+          updateBtn.innerText = 'Update';
+          updateBtn.onclick = function() { updateTransaction(idx); };
+          actionCell.appendChild(updateBtn);
+          const cancelBtn = document.createElement('button');
+          cancelBtn.innerText = 'Cancel';
+          cancelBtn.onclick = function() { cancelEdit(); };
+          actionCell.appendChild(cancelBtn);
+        } else {
+          row.insertCell(0).innerText = t.date;
+          row.insertCell(1).innerText = t.desc;
+          row.insertCell(2).innerText = t.type;
+          row.insertCell(3).innerText = parseFloat(t.amount).toFixed(2);
+          row.insertCell(4).innerText = t.category + (t.recurring ? ' (Recurring)' : '');
+          const actionCell = row.insertCell(5);
+          const editBtn = document.createElement('button');
+          editBtn.innerText = 'Edit';
+          editBtn.setAttribute('aria-label', 'Edit transaction');
+          editBtn.onclick = function() { startEditTransaction(idx); };
+          actionCell.appendChild(editBtn);
+          const delBtn = document.createElement('button');
+          delBtn.innerText = 'Delete';
+          delBtn.setAttribute('aria-label', 'Delete transaction');
+          delBtn.onclick = function() { deleteTransaction(idx); };
+          actionCell.appendChild(delBtn);
+          // Add click event to show details modal
+          row.onclick = function() { showTransactionModal(idx); };
+        }
+      });
+    }
+
+    function deleteTransaction(idx) {
+      // Update balance
+      const t = transactions[idx];
+      if (t.type === 'Income') balance -= t.amount;
+      else balance += t.amount;
+      document.getElementById('balance').innerText = balance.toFixed(2);
+      // Remove transaction
+      transactions.splice(idx, 1);
+      // Save to localStorage
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+      localStorage.setItem('balance', balance.toFixed(2));
+      // Re-render
+      renderTransactions();
+      updateSummary();
+    }
+
+    function startEditTransaction(idx) {
+      editingRow = idx;
+      renderTransactions();
+    }
+
+    function updateTransaction(idx) {
+      const date = document.getElementById('edit-date').value;
+      const desc = document.getElementById('edit-desc').value;
+      const amount = parseFloat(document.getElementById('edit-amount').value);
+      const type = document.getElementById('edit-type').value;
+      const category = document.getElementById('edit-category').value;
+      if (!date || !desc || isNaN(amount) || amount <= 0) {
+        alert('Please fill all fields correctly! Amount must be positive.');
+        return;
+      }
+      // Recalculate balance: remove old transaction effect
+      const old = transactions[idx];
+      if (old) {
+        if (old.type === 'Income') balance -= old.amount;
+        else balance += old.amount;
+      }
+      const transaction = { date, desc, type, amount, category };
+      transactions[idx] = transaction;
+      // Apply new transaction effect to balance
+      if (type === 'Income') balance += amount;
+      else balance -= amount;
+      document.getElementById('balance').innerText = balance.toFixed(2);
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+      localStorage.setItem('balance', balance.toFixed(2));
+      editingRow = null;
+      renderTransactions();
+      updateSummary();
+      // Show feedback message
+      const feedback = document.getElementById('feedback');
+      feedback.innerText = 'Transaction updated!';
+      feedback.style.opacity = 1;
+      setTimeout(() => {
+        feedback.style.opacity = 0;
+        setTimeout(() => { feedback.innerText = ''; feedback.style.opacity = 1; }, 500);
+      }, 2000);
+
+      checkBudgetForTransaction(transactions[idx]);
+    }
+
+    function cancelEdit() {
+      editingRow = null;
+      renderTransactions();
+    }
+
+    function updateSummary() {
+      let totalIncome = 0;
+      let totalExpense = 0;
+      transactions.forEach(t => {
+        if (t.type === 'Income') totalIncome += parseFloat(t.amount);
+        else totalExpense += parseFloat(t.amount);
+      });
+      document.getElementById('totalIncome').innerText = totalIncome.toFixed(2);
+      document.getElementById('totalExpense').innerText = totalExpense.toFixed(2);
+    }
+
+    // Sidebar navigation logic
+let currentPanel = null;
+function togglePanel(panelName, showFn) {
+  if (currentPanel === panelName) {
+    mainView.innerHTML = '';
+    currentPanel = null;
+  } else {
+    showFn();
+    currentPanel = panelName;
+  }
+}
+document.getElementById('filterBtn').onclick = function() {
+  togglePanel('filter', showFilterUI);
+};
+document.getElementById('exportBtn').onclick = function() {
+  togglePanel('export', showExportUI);
+};
+document.getElementById('chartBtn').onclick = function() {
+  togglePanel('chart', showChartUI);
+};
+document.getElementById('budgetBtn').onclick = function() {
+  togglePanel('budget', showBudgetUI);
+};
+document.getElementById('summaryBtn').onclick = function() {
+  togglePanel('summary', showSummaryCards);
+};
+
+// Dark Mode Toggle (fixed logic)
+let darkModeBtn = document.getElementById('darkModeBtn');
+if (!darkModeBtn) {
+  darkModeBtn = document.createElement('button');
+  darkModeBtn.id = 'darkModeBtn';
+  darkModeBtn.innerText = 'Dark Mode';
+  darkModeBtn.style.width = '100%';
+  darkModeBtn.style.marginBottom = '10px';
+  document.getElementById('sidebar').appendChild(darkModeBtn);
+}
+darkModeBtn.onclick = function() {
+  document.body.classList.toggle('dark-mode');
+  darkModeBtn.innerText = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+};
+// Add dark mode styles only once
+if (!document.getElementById('darkModeStyle')) {
+  const darkStyle = document.createElement('style');
+  darkStyle.id = 'darkModeStyle';
+  darkStyle.innerHTML = `
+    body.dark-mode { background: #181a1b; color: #eee; }
+    body.dark-mode table, body.dark-mode #summary, body.dark-mode form, body.dark-mode #sidebar { background: #23272b !important; color: #eee !important; }
+    body.dark-mode th, body.dark-mode td { border-color: #444 !important; }
+    body.dark-mode button { background: #444 !important; color: #eee !important; }
+  `;
+  document.head.appendChild(darkStyle);
+}
+
+// Add visible warning at the top
+const warningDiv = document.createElement('div');
+warningDiv.style.background = '#ffc107';
+warningDiv.style.color = '#212529';
+warningDiv.style.padding = '12px';
+warningDiv.style.textAlign = 'center';
+warningDiv.style.fontWeight = 'bold';
+warningDiv.style.borderBottom = '2px solid #ff9800';
+warningDiv.innerText = 'Warning: This app stores data in localStorage and is for demo/assignment use only. Do not use for sensitive information.';
+document.body.insertBefore(warningDiv, document.body.firstChild);
+
+    // Summary Cards
+    function showSummaryCards() {
+      const total = transactions.length;
+      const expenses = transactions.filter(t=>t.type==='Expense');
+      const incomes = transactions.filter(t=>t.type==='Income');
+      const avgExpense = expenses.length ? (expenses.reduce((s,t)=>s+parseFloat(t.amount),0)/expenses.length).toFixed(2) : '0.00';
+      const maxIncome = incomes.length ? Math.max(...incomes.map(t=>parseFloat(t.amount))).toFixed(2) : '0.00';
+      mainView.innerHTML = `<div style='display:flex;gap:20px;flex-wrap:wrap;'>
+        <div style='background:#fff;padding:16px 24px;border-radius:8px;box-shadow:0 2px 8px #eee;min-width:160px;'>
+          <h4>Total Transactions</h4><p style='font-size:1.5em;'>${total}</p>
+        </div>
+        <div style='background:#fff;padding:16px 24px;border-radius:8px;box-shadow:0 2px 8px #eee;min-width:160px;'>
+          <h4>Average Expense</h4><p style='font-size:1.5em;'>${avgExpense}</p>
+        </div>
+        <div style='background:#fff;padding:16px 24px;border-radius:8px;box-shadow:0 2px 8px #eee;min-width:160px;'>
+          <h4>Highest Income</h4><p style='font-size:1.5em;'>${maxIncome}</p>
+        </div>
+      </div>`;
+    }
+
+    function showFilterUI() {
+      mainView.innerHTML = `<h3>Filter Transactions</h3>
+    <label for='filterMonth'>Month:</label>
+    <select id='filterMonth'>
+      <option value=''>All</option>
+      ${[...Array(12)].map((_,i)=>`<option value='${i+1}'>${i+1}</option>`).join('')}
+    </select>
+    <label for='filterYear'>Year:</label>
+    <select id='filterYear'>
+      <option value=''>All</option>
+      ${getYears().map(y=>`<option value='${y}'>${y}</option>`).join('')}
+    </select>
+    <label for='filterCategory'>Category:</label>
+    <select id='filterCategory'>
+      <option value=''>All</option>
+      <option value='Food'>Food</option>
+      <option value='Transport'>Transport</option>
+      <option value='Bills'>Bills</option>
+      <option value='Shopping'>Shopping</option>
+      <option value='Salary'>Salary</option>
+      <option value='Other'>Other</option>
+    </select>
+    <label for='filterStart'>Start Date:</label>
+    <input type='date' id='filterStart'>
+    <label for='filterEnd'>End Date:</label>
+    <input type='date' id='filterEnd'>
+    <button onclick='applyFilter()'>Apply</button>
+    <div id='filterResults'></div>`;
+    }
+    function getYears() {
+      const years = transactions.map(t => t.date.split('-')[0]);
+      return [...new Set(years)].sort();
+    }
+    function applyFilter() {
+      const month = document.getElementById('filterMonth').value;
+      const year = document.getElementById('filterYear').value;
+      const category = document.getElementById('filterCategory').value;
+      const start = document.getElementById('filterStart').value;
+      const end = document.getElementById('filterEnd').value;
+      let filtered = transactions;
+      if (year) filtered = filtered.filter(t => t.date.startsWith(year));
+      if (month) filtered = filtered.filter(t => t.date.split('-')[1] === month.padStart(2,'0'));
+      if (category) filtered = filtered.filter(t => t.category === category);
+      if (start) filtered = filtered.filter(t => t.date >= start);
+      if (end) filtered = filtered.filter(t => t.date <= end);
+      document.getElementById('filterResults').innerHTML = renderFilteredTable(filtered);
+    }
+    function renderFilteredTable(list) {
+      if (!list.length) return '<p>No transactions found.</p>';
+      let html = `<table style='width:100%;margin-top:10px;'><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Category</th></tr>`;
+      list.forEach(t => {
+        html += `<tr><td>${escapeHTML(t.date)}</td><td>${escapeHTML(t.desc)}</td><td>${escapeHTML(t.type)}</td><td>${escapeHTML(t.amount)}</td><td>${escapeHTML(t.category||'')}</td></tr>`;
+      });
+      html += '</table>';
+      return html;
+    }
+
+    function showExportUI() {
+      mainView.innerHTML = `<h3>Export Transactions as CSV</h3>
+    <button onclick='downloadCSV()'>Download CSV</button>`;
+    }
+    function downloadCSV() {
+      const header = ['Date','Description','Type','Amount','Category'];
+      const rows = transactions.map(t => [t.date, t.desc, t.type, t.amount, t.category||'']);
+      let csv = header.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'transactions.csv';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function showChartUI() {
+      mainView.innerHTML = `<h3>Income vs Expense Chart</h3>
+    <canvas id='chartCanvas' width='400' height='250'></canvas>
+    <h3>Pie Chart by Category</h3>
+    <canvas id='pieCanvas' width='400' height='250'></canvas>`;
+      drawChart();
+      drawPieChart();
+    }
+    function drawChart() {
+      const ctx = document.getElementById('chartCanvas').getContext('2d');
+      const income = transactions.filter(t=>t.type==='Income').reduce((sum,t)=>sum+parseFloat(t.amount),0);
+      const expense = transactions.filter(t=>t.type==='Expense').reduce((sum,t)=>sum+parseFloat(t.amount),0);
+      // Simple bar chart
+      ctx.clearRect(0,0,400,250);
+      ctx.fillStyle = '#007bff';
+      ctx.fillRect(60, 250-income*2, 80, income*2);
+      ctx.fillStyle = '#dc3545';
+      ctx.fillRect(220, 250-expense*2, 80, expense*2);
+      ctx.fillStyle = '#333';
+      ctx.font = '16px Arial';
+      ctx.fillText('Income', 75, 240);
+      ctx.fillText('Expense', 225, 240);
+      ctx.fillText(income.toFixed(2), 85, 230-income*2);
+      ctx.fillText(expense.toFixed(2), 245, 230-expense*2);
+    }
+    function drawPieChart() {
+      const ctx = document.getElementById('pieCanvas').getContext('2d');
+      const categories = {};
+      transactions.forEach(t => {
+        const cat = t.category || 'Other';
+        categories[cat] = (categories[cat] || 0) + parseFloat(t.amount);
+      });
+      const total = Object.values(categories).reduce((a,b)=>a+b,0);
+      let startAngle = 0;
+      const colors = ['#007bff','#dc3545','#ffc107','#28a745','#6f42c1','#17a2b8','#fd7e14'];
+      let i = 0;
+      ctx.clearRect(0,0,400,250);
+      Object.entries(categories).forEach(([cat, val]) => {
+        const sliceAngle = (val/total)*2*Math.PI;
+        ctx.beginPath();
+        ctx.moveTo(200,125);
+        ctx.arc(200,125,100,startAngle,startAngle+sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors[i%colors.length];
+        ctx.fill();
+        // Label with percentage
+        const midAngle = startAngle + sliceAngle/2;
+        const x = 200 + Math.cos(midAngle)*120;
+        const y = 125 + Math.sin(midAngle)*120;
+        ctx.fillStyle = '#333';
+        ctx.font = '14px Arial';
+        const percent = ((val/total)*100).toFixed(1);
+        ctx.fillText(cat + ' (' + percent + '%)', x-40, y);
+        startAngle += sliceAngle;
+        i++;
+      });
+    }
+
+    // Transaction Details Modal
+    function showTransactionModal(idx) {
+      const t = transactions[idx];
+      const modal = document.createElement('div');
+      modal.id = 'detailsModal';
+      modal.style.position = 'fixed';
+      modal.style.top = '0';
+      modal.style.left = '0';
+      modal.style.width = '100vw';
+      modal.style.height = '100vh';
+      modal.style.background = 'rgba(0,0,0,0.3)';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.innerHTML = `<div style='background:#fff;padding:24px 32px;border-radius:10px;min-width:300px;max-width:90vw;'>
+        <h3>Transaction Details</h3>
+        <p><b>Date:</b> ${escapeHTML(t.date)}</p>
+        <p><b>Description:</b> ${escapeHTML(t.desc)}</p>
+        <p><b>Type:</b> ${escapeHTML(t.type)}</p>
+        <p><b>Amount:</b> ${parseFloat(t.amount).toFixed(2)}</p>
+        <p><b>Category:</b> ${escapeHTML(t.category||'')}</p>
+        <p><b>Recurring:</b> ${t.recurring ? 'Yes' : 'No'}</p>
+        <button onclick='document.body.removeChild(document.getElementById("detailsModal"))'>Close</button>
+      </div>`;
+      document.body.appendChild(modal);
+    }
+
+    // Budget UI and logic
+    function showBudgetUI() {
+      mainView.innerHTML = `<h3>Set Monthly Budget</h3>
+    <label for='budgetMonth'>Month:</label>
+    <select id='budgetMonth'>${[...Array(12)].map((_,i)=>`<option value='${i+1}'>${i+1}</option>`).join('')}</select>
+    <label for='budgetYear'>Year:</label>
+    <select id='budgetYear'>${getYears().map(y=>`<option value='${y}'>${y}</option>`).join('')}</select>
+    <label for='budgetAmount'>Budget Amount:</label>
+    <input type='number' id='budgetAmount'>
+    <button onclick='saveBudget()'>Save Budget</button>
+    <div id='budgetStatus'></div>`;
+    }
+    function saveBudget() {
+      const month = document.getElementById('budgetMonth').value;
+      const year = document.getElementById('budgetYear').value;
+      const amount = parseFloat(document.getElementById('budgetAmount').value);
+      if (!month || !year || isNaN(amount) || amount <= 0) {
+        alert('Please enter valid budget info.');
+        return;
+      }
+      monthlyBudgets[year+'-'+month.padStart(2,'0')] = amount;
+      document.getElementById('budgetStatus').innerText = 'Budget saved!';
+      // Save to localStorage
+      localStorage.setItem('monthlyBudgets', JSON.stringify(monthlyBudgets));
+    }
+    function checkBudget() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = (now.getMonth()+1).toString().padStart(2,'0');
+      const key = year+'-'+month;
+      const budget = monthlyBudgets[key];
+      if (!budget) return;
+      const spent = transactions.filter(t=>t.type==='Expense'&&t.date.startsWith(key)).reduce((sum,t)=>sum+parseFloat(t.amount),0);
+      if (spent >= budget) {
+        alert('You have reached or exceeded your budget for this month!');
+      } else if (spent >= budget*0.8) {
+        alert('Warning: You have spent 80% of your budget for this month!');
+      }
+    }
+    // Call checkBudget after addTransaction
+    const originalAddTransaction = addTransaction;
+    addTransaction = function() {
+      originalAddTransaction.apply(this, arguments);
+      checkBudget();
+    };
+    function checkBudgetForTransaction(t) {
+      if (!t || !t.date) return;
+      const [year, month] = t.date.split('-');
+      const key = year + '-' + month;
+      const budget = monthlyBudgets[key];
+      if (!budget) return;
+      const spent = transactions.filter(tr=>tr.type==='Expense'&&tr.date.startsWith(key)).reduce((sum,tr)=>sum+parseFloat(tr.amount),0);
+      if (spent >= budget) {
+        alert('You have reached or exceeded your budget for ' + key + '!');
+      } else if (spent >= budget*0.8) {
+        alert('Warning: You have spent 80% of your budget for ' + key + '!');
+      }
+    }
+  </script>
+</body>
+</html>
